@@ -66,7 +66,7 @@ static dispatch_queue_t json_request_operation_processing_queue() {
 {
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:URLString]];
     AFJSONRequestOperation *operation = [AFJSONRequestOperation JSONRequestOperationWithRequest:request success:success failure:failure];
-    NSOperationQueue *queue = [[NSOperationQueue alloc] init];
+    NSOperationQueue *queue = [[[NSOperationQueue alloc] init] autorelease];
     [queue addOperation:operation];
     return operation;
 }
