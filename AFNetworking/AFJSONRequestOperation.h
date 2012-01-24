@@ -65,4 +65,11 @@
                                                     success:(void (^)(NSURLRequest *request, NSHTTPURLResponse *response, id JSON))success 
                                                     failure:(void (^)(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON))failure;
 
+/**
+ Creates, starts (in a NSOperationQueue) and returns an `AFJSONRequestOperation` object with the specified success and failure blocks.
+ The URLRequest is created internally from the URLString parameter.
+ */
++ (AFJSONRequestOperation *)JSONRequestOperationWithURLString:(NSString *)URLString success:(void (^)(NSURLRequest *request, NSHTTPURLResponse *response, id JSON))success 
+                                  failure:(void (^)(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON))failure;
+
 @end

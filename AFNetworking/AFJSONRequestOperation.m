@@ -62,6 +62,15 @@ static dispatch_queue_t json_request_operation_processing_queue() {
     return requestOperation;
 }
 
++ (AFJSONRequestOperation *)JSONRequestOperationWithURLString:(NSString *)URLString success:(void (^)(NSURLRequest *, NSHTTPURLResponse *, id))success failure:(void (^)(NSURLRequest *, NSHTTPURLResponse *, NSError *, id))failure
+{
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:URLString]];
+    AFJSONRequestOperation *operation = [AFJSONRequestOperation JSONRequestOperationWithRequest:request success:success failure:failure];
+    NSOperationQueue *queue = [[NSOperationQueue alloc] init];
+    [queue addOperation:operation];
+    return operation;
+}
+
 + (NSSet *)defaultAcceptableContentTypes {
     return [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript", nil];
 }
