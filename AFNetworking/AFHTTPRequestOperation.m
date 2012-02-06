@@ -62,6 +62,9 @@ static NSString * AFStringFromIndexSet(NSIndexSet *indexSet) {
 @synthesize acceptableStatusCodes = _acceptableStatusCodes;
 @synthesize acceptableContentTypes = _acceptableContentTypes;
 @synthesize HTTPError = _HTTPError;
+@synthesize successCallbackQueue = _successCallbackQueue;
+@synthesize failureCallbackQueue = _failureCallbackQueue;
+
 
 - (id)initWithRequest:(NSURLRequest *)request {
     self = [super initWithRequest:request];
@@ -78,6 +81,8 @@ static NSString * AFStringFromIndexSet(NSIndexSet *indexSet) {
     [_acceptableStatusCodes release];
     [_acceptableContentTypes release];
     [_HTTPError release];
+    if (_successCallbackQueue) { dispatch_release(_successCallbackQueue), _successCallbackQueue=NULL;}
+    if (_failureCallbackQueue) { dispatch_release(_failureCallbackQueue), _failureCallbackQueue=NULL;}
     [super dealloc];
 }
 
@@ -117,6 +122,34 @@ static NSString * AFStringFromIndexSet(NSIndexSet *indexSet) {
     return !self.acceptableContentTypes || [self.acceptableContentTypes containsObject:[self.response MIMEType]];
 }
 
+- (void)setSuccessCallbackQueue:(dispatch_queue_t)successCallbackQueue {
+    if (successCallbackQueue != _successCallbackQueue) {
+        
+        if (_successCallbackQueue) {
+            dispatch_release(_successCallbackQueue);
+        }
+     
+        if (successCallbackQueue) {
+            dispatch_retain(successCallbackQueue);
+            _successCallbackQueue = successCallbackQueue;
+        }
+    }    
+}
+
+- (void)setFailureCallbackQueue:(dispatch_queue_t)failureCallbackQueue {
+    if (failureCallbackQueue != _failureCallbackQueue) {
+        
+        if (_failureCallbackQueue) {
+            dispatch_release(_failureCallbackQueue);
+        }
+        
+        if (failureCallbackQueue) {
+            dispatch_retain(failureCallbackQueue);
+            _failureCallbackQueue = failureCallbackQueue;
+        }
+    }    
+}
+
 - (void)setCompletionBlockWithSuccess:(void (^)(AFHTTPRequestOperation *operation, id responseObject))success
                               failure:(void (^)(AFHTTPRequestOperation *operation, NSError *error))failure
 {
@@ -127,13 +160,13 @@ static NSString * AFStringFromIndexSet(NSIndexSet *indexSet) {
         
         if (self.error) {
             if (failure) {
-                dispatch_async(dispatch_get_main_queue(), ^(void) {
+                dispatch_async(self.failureCallbackQueue ? self.failureCallbackQueue : dispatch_get_main_queue(), ^{
                     failure(self, self.error);
                 });
             }
         } else {
             if (success) {
-                dispatch_async(dispatch_get_main_queue(), ^{
+                dispatch_async(self.successCallbackQueue ? self.successCallbackQueue : dispatch_get_main_queue(), ^{
                     success(self, self.responseData);
                 });
             }
