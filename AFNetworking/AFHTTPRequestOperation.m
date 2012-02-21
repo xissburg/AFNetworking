@@ -81,8 +81,17 @@ static NSString * AFStringFromIndexSet(NSIndexSet *indexSet) {
     [_acceptableStatusCodes release];
     [_acceptableContentTypes release];
     [_HTTPError release];
-    if (_successCallbackQueue) { dispatch_release(_successCallbackQueue), _successCallbackQueue=NULL;}
-    if (_failureCallbackQueue) { dispatch_release(_failureCallbackQueue), _failureCallbackQueue=NULL;}
+    
+    if (_successCallbackQueue) { 
+        dispatch_release(_successCallbackQueue);
+        _successCallbackQueue = NULL;
+    }
+    
+    if (_failureCallbackQueue) { 
+        dispatch_release(_failureCallbackQueue); 
+        _failureCallbackQueue = NULL;
+    }
+    
     [super dealloc];
 }
 
@@ -124,7 +133,6 @@ static NSString * AFStringFromIndexSet(NSIndexSet *indexSet) {
 
 - (void)setSuccessCallbackQueue:(dispatch_queue_t)successCallbackQueue {
     if (successCallbackQueue != _successCallbackQueue) {
-        
         if (_successCallbackQueue) {
             dispatch_release(_successCallbackQueue);
         }
@@ -138,7 +146,6 @@ static NSString * AFStringFromIndexSet(NSIndexSet *indexSet) {
 
 - (void)setFailureCallbackQueue:(dispatch_queue_t)failureCallbackQueue {
     if (failureCallbackQueue != _failureCallbackQueue) {
-        
         if (_failureCallbackQueue) {
             dispatch_release(_failureCallbackQueue);
         }
@@ -159,9 +166,17 @@ static NSString * AFStringFromIndexSet(NSIndexSet *indexSet) {
         }
         
         if (self.error) {
-            [self dispatchFailureBlock:failure];
+            if (failure) {
+                dispatch_async(self.failureCallbackQueue ? self.failureCallbackQueue : dispatch_get_main_queue(), ^{
+                    failure(self, self.error);
+                });
+            }
         } else {
-            [self dispatchSuccessBlock:success responseObject:self.responseString];
+            if (success) {
+                dispatch_async(self.successCallbackQueue ? self.successCallbackQueue : dispatch_get_main_queue(), ^{
+                    success(self, self.responseString);
+                });
+            }
         }
     };
 }
@@ -170,24 +185,6 @@ static NSString * AFStringFromIndexSet(NSIndexSet *indexSet) {
 
 + (BOOL)canProcessRequest:(NSURLRequest *)request {
     return YES;
-}
-
-#pragma mark - AFInternal
-
-- (void)dispatchSuccessBlock:(void (^)(AFHTTPRequestOperation *operation, id responseObject))successBlock responseObject:(id)responseObject {
-    if (successBlock) {
-        dispatch_async(self.successCallbackQueue ? self.successCallbackQueue : dispatch_get_main_queue(), ^{
-            successBlock(self, responseObject);
-        });
-    }
-}
-
-- (void)dispatchFailureBlock:(void (^)(AFHTTPRequestOperation *operation, NSError *error))failureBlock {
-    if (failureBlock) {
-        dispatch_async(self.failureCallbackQueue ? self.failureCallbackQueue : dispatch_get_main_queue(), ^{
-            failureBlock(self, self.error);
-        });
-    }
 }
 
 @end
