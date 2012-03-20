@@ -48,7 +48,9 @@ NSData * AFJSONEncode(id object, NSError **error) {
         
         NSUInteger serializeOptionFlags = 0;
         [invocation setArgument:&serializeOptionFlags atIndex:2]; // arguments 0 and 1 are self and _cmd respectively, automatically set by NSInvocation
-        [invocation setArgument:error atIndex:3];
+        if (error != NULL) {
+            [invocation setArgument:error atIndex:3];
+        }
         
         [invocation invoke];
         [invocation getReturnValue:&data];
@@ -90,7 +92,7 @@ NSData * AFJSONEncode(id object, NSError **error) {
         data = [JSONString dataUsingEncoding:NSUTF8StringEncoding];
     } else if (_NSJSONSerializationClass && [_NSJSONSerializationClass respondsToSelector:_NSJSONSerializationSelector]) {
 #ifdef _AFNETWORKING_PREFER_NSJSONSERIALIZATION_
-    _af_nsjson_encode:
+    _af_nsjson_encode:;
 #endif
         NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:[_NSJSONSerializationClass methodSignatureForSelector:_NSJSONSerializationSelector]];
         invocation.target = _NSJSONSerializationClass;
@@ -99,7 +101,9 @@ NSData * AFJSONEncode(id object, NSError **error) {
         [invocation setArgument:&object atIndex:2]; // arguments 0 and 1 are self and _cmd respectively, automatically set by NSInvocation
         NSUInteger writeOptions = 0;
         [invocation setArgument:&writeOptions atIndex:3];
-        [invocation setArgument:error atIndex:4];
+        if (error != NULL) {
+            [invocation setArgument:error atIndex:4];
+        }
 
         [invocation invoke];
         [invocation getReturnValue:&data];
@@ -138,7 +142,9 @@ id AFJSONDecode(NSData *data, NSError **error) {
         
         NSUInteger parseOptionFlags = 0;
         [invocation setArgument:&parseOptionFlags atIndex:2]; // arguments 0 and 1 are self and _cmd respectively, automatically set by NSInvocation
-        [invocation setArgument:error atIndex:3];
+        if (error != NULL) {
+            [invocation setArgument:&error atIndex:3];
+        }
         
         [invocation invoke];
         [invocation getReturnValue:&JSON];
@@ -158,7 +164,23 @@ id AFJSONDecode(NSData *data, NSError **error) {
         
         NSUInteger yajlParserOptions = 0;
         [invocation setArgument:&yajlParserOptions atIndex:2]; // arguments 0 and 1 are self and _cmd respectively, automatically set by NSInvocation
-        [invocation setArgument:error atIndex:3];
+        if (error != NULL) {
+            [invocation setArgument:&error atIndex:3];
+        }
+        
+        [invocation invoke];
+        [invocation getReturnValue:&JSON];
+    } else if (_NXJsonParserClass && [_NXJsonParserClass respondsToSelector:_NXJsonParserSelector]) {
+        NSNumber *nullOption = [NSNumber numberWithBool:YES];
+        NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:[_NXJsonParserClass methodSignatureForSelector:_NXJsonParserSelector]];
+        invocation.target = _NXJsonParserClass;
+        invocation.selector = _NXJsonParserSelector;
+        
+        [invocation setArgument:&data atIndex:2]; // arguments 0 and 1 are self and _cmd respectively, automatically set by NSInvocation
+        if (error != NULL) {
+            [invocation setArgument:&error atIndex:3];
+        }
+        [invocation setArgument:&nullOption atIndex:4];
         
         [invocation invoke];
         [invocation getReturnValue:&JSON];
@@ -176,7 +198,7 @@ id AFJSONDecode(NSData *data, NSError **error) {
         [invocation getReturnValue:&JSON];
     } else if (_NSJSONSerializationClass && [_NSJSONSerializationClass respondsToSelector:_NSJSONSerializationSelector]) {
 #ifdef _AFNETWORKING_PREFER_NSJSONSERIALIZATION_
-    _af_nsjson_decode:
+    _af_nsjson_decode:;
 #endif
         NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:[_NSJSONSerializationClass methodSignatureForSelector:_NSJSONSerializationSelector]];
         invocation.target = _NSJSONSerializationClass;
@@ -185,7 +207,9 @@ id AFJSONDecode(NSData *data, NSError **error) {
         [invocation setArgument:&data atIndex:2]; // arguments 0 and 1 are self and _cmd respectively, automatically set by NSInvocation
         NSUInteger readOptions = 0;
         [invocation setArgument:&readOptions atIndex:3];
-        [invocation setArgument:error atIndex:4];
+        if (error != NULL) {
+            [invocation setArgument:&error atIndex:4];
+        }
 
         [invocation invoke];
         [invocation getReturnValue:&JSON];
